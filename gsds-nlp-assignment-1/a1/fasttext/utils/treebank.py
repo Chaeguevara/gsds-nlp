@@ -10,7 +10,7 @@ from collections import defaultdict
 
 
 def generate_ngrams(s, min, max):
-    """ 
+    """
 
     generate character ngrams in this function.
 
@@ -21,8 +21,8 @@ def generate_ngrams(s, min, max):
 
     Return:
     character_n_grams -- sorted list of character n-grams of word s
-    
-    Example: Given s petri, min 2, and max 4. 
+
+    Example: Given s petri, min 2, and max 4.
     The correct return of this function is  ['<p', '<pe', '<pet', 'et', 'etr', 'etri', 'i>', 'pe', 'pet', 'petr','petri', 'ri', 'ri>', 'tr', 'tri', 'tri>']
     """
     s = s.lower()
@@ -34,9 +34,18 @@ def generate_ngrams(s, min, max):
     end_token=">"
     all_n_grams.add(s)
     ### YOUR CODE HERE (~ 5 lines) ###
-
+    new_s = start_token + s + end_token
+    new_s = np.array([char for char in new_s])
+    for i in range(min,max+1):
+        if i > len(new_s):
+            break
+        oneD_cnn = np.apply_along_axis(
+                    lambda x: ''.join(x),
+                    1,
+                    np.lib.stride_tricks.sliding_window_view(new_s, i)
+                 )
+        all_n_grams.update(set(oneD_cnn))
     ######
-
     character_n_grams=sorted(list(all_n_grams))
     return character_n_grams
 
@@ -313,7 +322,7 @@ def test_treebank():
     print("==== Answer check for generate_ngrams ====")
     print("\n=== Results ===")
     for i in range(len(s_lists)):
-        if generate_ngrams(s_lists[i],2,4) != ngram_lists[i]: 
+        if generate_ngrams(s_lists[i],2,4) != ngram_lists[i]:
             print("Wrong Answer! character n-grams of {} should be {}".format(s_lists[i],ngram_lists[i]))
             print("Your answer was ", generate_ngrams(s_lists[i],2,4))
             return

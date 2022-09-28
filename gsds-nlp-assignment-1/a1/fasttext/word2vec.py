@@ -66,7 +66,25 @@ def negSamplingLossAndGradient(
     loss = 0.0
 
     ### YOUR CODE HERE (SAME AS word2vec.py of skipgram)
+    negSampleWordIndices = getNegativeSamples(outsideWordIdx, dataset, K)
+    indices = [outsideWordIdx] + negSampleWordIndices  # concat, len == K + 1
+    ### YOUR CODE HERE (~10 Lines)
+    u_o = outsideVectors[outsideWordIdx]  # (Dim, )
+    u_K = outsideVectors[negSampleWordIndices]  # (K, Dim)
+    pos_product = sigmoid(u_o.T @ centerWordVec)  # Scalar
+    neg_product = sigmoid(-u_K @ centerWordVec)  # (K, )
+    loss = -np.log(pos_product) - np.sum(np.log(neg_product))  # Scalar
 
+    gradCenterVec = (pos_product-1) * u_o + (1-neg_product) @ u_K
+
+    # get gradOutsideVecs
+    gradOutsideVecs = np.zeros_like(outsideVectors)
+    unique, index, count = np.unique(
+        negSampleWordIndices, return_index=True, return_counts=True
+    )
+    gradOutsideVecs[unique] = np.outer(count * (1-neg_product[index]),
+                                       centerWordVec)
+    gradOutsideVecs[outsideWordIdx] = (pos_product - 1) * centerWordVec
 
     ### END YOUR CODE
 
