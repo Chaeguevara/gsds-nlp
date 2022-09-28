@@ -8,7 +8,7 @@
 \usepackage{amsmath, amsthm, amssymb}
 \usepackage{enumerate}
 \usepackage{enumitem}
-\usepackage{kotex}
+\usepackage[cjk]{kotex}
 \usepackage{amsfonts}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{enumitem}
@@ -24,6 +24,8 @@
 \usepackage{float}
 \usepackage{blindtext}
 \usepackage{multicol}
+\usepackage{tikz}
+\usetikzlibrary{matrix}
 \newcommand{\note}[4][]{\todo[author=#2,color=#3,size=\scriptsize,fancyline,caption={},#1]{#4}} % default note settings, used by macros below.
 \newcommand{\mrinmaya}[2][]{\note[#1]{mrinmaya}{blue!40}{#2}}
 
@@ -47,7 +49,7 @@
 \large\textbf{Honor Pledge for Graded Assignments}
 \\　
 \\ 
-   \large{ “I, YOUR NAME HERE , affirm that I have not given or received any unauthorized help on this assignment, and that this work is my own.”}
+   \large{ “I, HEEJIN, CHAE , affirm that I have not given or received any unauthorized help on this assignment, and that this work is my own.”}
     \end{center}
 }%
 }
@@ -62,7 +64,7 @@
 \item Skeleton codes for problem 1, 2, 3, and 4 are at the directory \texttt{/skipgram}, \texttt{/fasttext}, \texttt{/sentence}, and \texttt{/tfidf} each. 
 \item Run the \texttt{bash collect\_submission.sh} script to produce your 2022\_abcde\_coding.zip file. Please make sure to modify collect\_sumbssion.sh file before running this command. (\textbf{abcde} stands for your student id)
 \item Modify this tex file into \texttt{2022\_abcde\_written.pdf} with your written solutions
-\item Upload both \texttt{2022\_abcde\_coding.zip} and \texttt{2022\_abcde\_written.pdf} to etl website. \textbf{(4pts)}
+\item Upload both \texttt{2022\_abcde\_coding.zip} and \thttps://www.overleaf.com/project/632c396c9d73cc88b3d14167exttt{2022\_abcde\_written.pdf} to etl website. \textbf{(4pts)}
 \end{itemize}
 
 %%%NOTE FOR MYSELF%%%
@@ -116,7 +118,7 @@ To learn the correct center and outside vector by gradient descent, we need to c
 	\item When is the gradient (\ref{partial v_c}) is zero? \textbf{(4pts)}
  %%%%%ANSWER FOR 1.1a%%%%%%
     \begin{answer}
-    
+    예측값과 실제 라벨(label)이 같을 때 $(\hat{\mathbf{y}} = {\mathbf{y}})$
     \end{answer}
     \item  If we update $v_c$ with this gradient, toward which vector is $v_c$ getting pulled to?  \textbf{(4pts)}
     \begin{itemize}
@@ -129,7 +131,7 @@ To learn the correct center and outside vector by gradient descent, we need to c
 \end{itemize}
  %%%%%ANSWER FOR 1.1b%%%%%%
   \begin{answer}
-    
+    주어진 실제 outside word인 O의 백터인 $u_{o}$
     \end{answer}  
     \item Derive the partial derivatives of $J_{\text{naive-softmax}}$ with respect to the outside word vector matrix, $U$.
     \begin{itemize} 
@@ -139,7 +141,10 @@ To learn the correct center and outside vector by gradient descent, we need to c
 \end{itemize}
 %%%%%ANSWER FOR 1.1c%%%%%%
 \begin{answer}
-
+when $w \neq o$ \\
+$\frac{\partial J}{\partial u_w} = 0 + \frac{exp(u_w^Tv_c)}{\sum_{w\in vocab}\exp(u_w^Tv_c)}{v_c} = P(O=w | C=c){v_c} = \hat{\mathbf{y}}{v_c}$ \\ \\
+when $w = o$ \\
+$\frac{\partial J}{\partial u_w} = -{v_c} + \frac{exp(u_w^Tv_c)}{\sum_{w\in vocab}\exp(u_w^Tv_c)}{v_c} = -{v_c} + P(O=w | C=c){v_c} = ({\mathbf{y}}-\hat{\mathbf{y}}){v_c}$ 
     \end{answer}
 \end{enumerate}
 
@@ -156,15 +161,36 @@ for a sample $w_1, \ldots w_K$, where $\sigma(\cdot)$ is the sigmoid function.
 \item Compare the computational complexity of negative sampling with that of the softmax loss function presented in section 1.1. State the reason why negative sampling is computationally more efficient. \textbf{(6pts)}
 
 %%%%%ANSWER FOR 1.2 a%%%%%%
-\begin{answer}
-
+\begin{answer} \\
+$O(\bm J_{\text{neg-sample}}) = 
+O(-\log(\sigma(\bm u_o^\top \bm v_c)) - \sum_{s=1}^K \log(\sigma(-\bm u_{w_s}^\top \bm v_c))) =
+O(1+K) = O(K) \\
+O(\bm J_{\text{naive-softmax}}) = 
+O(u_o^T v_c+\log\sum_{w\in vocab}\exp(u_w^Tv_c))
+= O(1+V) = O(V) \\
+$
+\\
+Where \\
+K =size of Negative samples \\
+V = size of All vocabularies \\ 
+K $<$ V \\
+\\
+$\therefore O(\bm J_{\text{neg-sample}}) < O(\bm J_{\text{naive-softmax}})  $ 
+Negative-sampling의 $\sum$ 부분에서 K개의 샘플에대해서만 계산하고, Naive-softmax는 $\sum$부분에서 모든 Vocabularies에 대해서 계산하기 떄문에 Negative sampling이 더 효율적이다
     \end{answer}
 \item Compute the partial derivatives of $\bm J_{\text{neg-sample}}$ with respect to $\bm v_c$, $\bm u_o$, and the $s^{th}$ negative sample $\bm u_{w_s}$. Please write your answers in terms of the vectors $\bm v_c$, $\bm u_o$, and $\bm u_{w_s}$, where $s \in [1, K]$.
  (within five lines)
 \textbf{(6pts)}
 %%%%%ANSWER FOR 1.2 b%%%%%%
-\begin{answer}
-
+\begin{answer}\\
+$
+1)\pdv{J}{v_c} = 
+-(1-\sigma(u_o^T v_c))u_o + \sum_{s=1}^K(1-\sigma(-u_{w_s}^T v_c))u_{w_s}\\
+2)\pdv{J}{u_o} = 
+-(1-\sigma(u_o^T v_c))v_c\\
+3)\pdv{J}{u_{w_s}} = 
+-\sum_{s=1}^K(\sigma(-u_{w_s}^T v_c) -1)v_c\\
+$
     \end{answer}
 \end{enumerate}
 \subsection{Coding}
@@ -196,7 +222,12 @@ To run the code command below, please move your directory to \texttt{/skipgram}.
 %%%%%ANSWER FOR 1.3 b%%%%%%
     
     \begin{answer}
-
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./figures/word_vectors.png}
+    \caption{word2vec visualization}
+    \label{fig:word2vec_vis}
+\end{figure}
     \end{answer}
 \end{enumerate}
 \section{FastText (28+4)}
@@ -230,13 +261,18 @@ The embeddings of the n-grams from the center words are from the  \textit{center
     \textbf{(6pts)}
     \newline
 %%%%% Answer for 2.1-b %%%%%%
-\begin{answer}
+\begin{answer}\\
+$\pdv{\bm J}{u_o} = - \pdv{\log(\sigma(s(v_c, u_o)))}{u_o}  - \pdv{\sum_{s=1}^K \log(\sigma(-s(v_c, u_{w_s})))}{u_o} = (\sigma(s(v_c, u_o))-1)\sum_{g \in G_{v_c}} z_g
+$  \\
+$\pdv{\bm J}{u_{w_s}} = - \pdv{\log(\sigma(s(v_c, u_o)))}{u_{w_s}}  - \pdv{\sum_{s=1}^K \log(\sigma(-s(v_c, u_{w_s})))}{u_{w_s}} = \sum_{s=1}^K (1-(\sigma(-s(v_c, u_{w_s}))))\sum_{g \in G_{v_c}} z_g^T u_{w_s}
+$
 \end{answer}
     \item Calculate  $\pdv{\bm J}{z_g}$
 \textbf{(4pts)}%%%%% Answer for 2.1-c %%%%%%
-    
 \begin{answer}
-    \end{answer}
+$ (\sigma(s(v_c, u_o))-1)\sum_{g \in G_{v_c}}u_o + \sum_{s=1}^K(1-\sigma(-s(v_c,u_o)))\sum_{g \in G_{v_c}u_o}
+$
+\end{answer}
     
 \end{enumerate}
 
@@ -258,17 +294,24 @@ The embeddings of the n-grams from the center words are from the  \textit{center
 %%%%%ANSWER FOR 2.2 b%%%%%%
     
     \begin{answer}
-
+    같은 subword를 가지는 단어들에 대해서 성능이 높아진것을 볼 수 있음(day 등 )
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./figures/fasttext_word_vectors.png}
+    \caption{fasttext visualization}
+    \label{fig:fasttext_word2vec_vis}
+\end{figure}
     \end{answer}
     \item What do you think are the advantages of a subword approach such as fastText compared to word2vec? (state within one line) \textbf{(4pts)}\\
 %%%%%ANSWER FOR 2.2 c%%%%%%
     \begin{answer}
-
+    학습속도가 훨씬 빠름. 
     \end{answer}
 \item \textbf{(Bonus)} Can you think of a few examples where subword approach might hurt the embedding’s performance? (two or three examples are enough) \textbf{(4pts)}\\
 %%%%%ANSWER FOR 2.2 d%%%%%%
     \begin{answer}
-
+    1) 의미는 다르지만 subword가 같은 단어가 유사한 단어로 처리될  수 있음(spokesman, russian)
+    2) 한 단어를 여러번 sampling하는 효과로 bias가 더 짙어질 수 있음
     \end{answer}
 \end{enumerate}
 \section{Vector Representation of Sentences (12+4)}
@@ -278,13 +321,16 @@ Based on word representation which we learned from Questions 1 and 2, we will re
 \newline
 What is the main difference between two methods, \texttt{word\_tokenize} and \texttt{WordPunctTokenizer}? (state within one line) \textbf{(4pts)}
 %%%%%ANSWER FOR 3 a%%%%%%
-\begin{answer}
+\begin{answer} 
+    \texttt{WordPunctTokenizer의 경우 어포스트로피('), 하이픈(-) 등 점(punctuation)을 독립적으로 토큰화하고 반대로 \texttt{word\_tokenize}의 경우 구두점을 단어 또는 Character의 일부분으로 포함시켜 표현한다.}
 \end{answer}
 \item Stop words are the words in a stop list which are filtered out (i.e. stopped) before or after processing of natural language data (text). Let's check out the English stopwords list of NLTK by running the code in the \texttt{representing\_sentence\_vectors.ipynb}.
 \newline
 After running the code and checking out the list, state \textbf{TWO} reasons why stopwords removal is useful in preprocessing. \textbf{(4pts)}
 %%%%%ANSWER FOR 3 b%%%%%%
-\begin{answer}
+\begin{answer}\\
+1) 더 의미 있는 단어가 자주 나올 수 있도록함(France-Paris not France-The). 의미있는 단어를 더 남겨 모델 향상을 꽤할 수 있음
+2) 데이터 사이즈가 줄어들어 속도 향상을 꽤할 수 있음
 \end{answer}
 \item 
 Find three sentences where $s_1$ and $s_2$ have similar meanings and $s_1$ and $s_3$ have opposite meanings, while cosine distance between $(s_1, s_2)$ is longer than $(s_1, s_3)$  
@@ -293,7 +339,8 @@ As an example, $s_1$="I like everything of this movie. The only thing I do not l
 
 %%%%%ANSWER FOR 3 c%%%%%%
 \begin{answer}
-
+$s_1$과 $s_3$의 경우 stop word를 제거하고 나면 동일한 Token만 남음. \text{counter\_intuitive\_sentence }function은 문장을 각 토큰으로 나누고, 각 토큰의 vector값을 vocabulary에서 꺼내 옴. 이후 단어 갯수만큼 나눠서 평균을 내기 때문에 $s_1$과 $s_3$는 동일한 embedding을 가지며, 더 큰 cosine similarity를 가짐.\\
+또한 Token간 Sequence가 고려되지 않음
 \end{answer}
 \item \textbf{(Bonus)} What could we do beyond bag of words to resolve the issues presented at the problem (c)? Propose your own model that can represent sentences only using multi-layer perceptron (MLP) that can process variable-length sentences. Simply describe the idea with writing (and drawing) in a few lines. \textbf{(4pts)}
 \newline
@@ -301,7 +348,43 @@ As an example, $s_1$="I like everything of this movie. The only thing I do not l
 \newline
 %%%%%ANSWER FOR 3 d%%%%%%
 \begin{answer}
-
+\textbf{1)} stopword를 제거하지않음 $\because$ 
+\textbf{2)} 각 문장을 Tokenize함. 또한 각 문장의 고유 id를 만들고 이에 해당하는 vector를 초기화함. 이때 vector는 단어의 vector 차원과 동일하게 함
+\textbf{3)} (1D CNN) 문장의 각 Token을 sliding window이용, 윈도우 크기에 맞게 group으로 만듬. 이 벡터들을 concantenate함. 그 후 문장 id에 해당하는 vector를 concatenate함.
+\textbf{4)} 2)에서 생성된 토큰을 input으로 하여, 윈도우 사이즈 다음에 나오는 단어를 예측하는 방식으로 학습을 시킴\\
+ex) "I eager to have it all in this room"\\
+\begin{tikzpicture}
+  \matrix (m) [
+    matrix of nodes,
+    nodes={draw},
+    column sep=10mm,
+    row sep=10mm,
+  ] {
+    |[draw=none]| Classifier &          &         & it \\
+    |[draw=none]| Concantenate &          &         & Concat Vector \\
+    |[draw=none]| Vector & Vec(id) & Vec("I")     & Vec("eager") & Vec("to") & Vec("have") \\
+    |[draw=none]| Input & paragraph id  & "I" & "eager"  &  "to" & "have" \\
+  };
+  \begin{scope}[
+    font=\footnotesize,
+    inner sep=.25em,
+    every node/.style={fill=white},
+  ]
+    
+    \draw [stealth-](m-1-4) --node {\text{predict}} (m-2-4);
+    \draw [stealth-](m-2-4) --node {\text{concat}} (m-3-2);
+    \draw [stealth-](m-2-4) --node {\text{concat}} (m-3-3);
+    \draw [stealth-](m-2-4) --node {\text{concat}} (m-3-4);
+    \draw [stealth-](m-2-4) --node {\text{concat}} (m-3-5);
+    \draw [stealth-](m-2-4) --node {\text{concat}} (m-3-6);
+    \draw [stealth-](m-3-2) --node {\text{get vector}} (m-4-2);
+    \draw [stealth-](m-3-3) --node {\text{get vector}} (m-4-3);
+    \draw [stealth-](m-3-4) --node {\text{get vector}} (m-4-4);
+    \draw [stealth-](m-3-5) --node {\text{get vector}} (m-4-5);
+    \draw [stealth-](m-3-6) --node {\text{get vector}} (m-4-6);
+    
+  \end{scope}
+\end{tikzpicture}
 \end{answer}
 \end{enumerate}
 
@@ -335,29 +418,30 @@ You can answer the following questions. Skeleton code is presented at \texttt{tf
     \item Create a term document matrix using simple word counts (number of times a word appears in a document) for all the documents.  \textbf{(4pts)}
     %%%%%ANSWER FOR 4.1 a%%%%%%
         \begin{answer}
+        0은 생략됨
 \begin{table}[H]
 \centering
 \label{tab:my-table}
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|}
 \hline
      & I & AM & SAM & LIKE & GREEN & EGGS & AND & HAM \\ \hline
-doc1 &   &    &     &      &       &      &     &     \\ \hline
-doc2 &   &    &     &      &       &      &     &     \\ \hline
-doc3 &   &    &     &      &       &      &     &     \\ \hline
+doc1 & 1 &  1 &  1  &      &       &      &     &     \\ \hline
+doc2 & 2 &  1 &  1  &   1  &       &      &     &     \\ \hline
+doc3 & 1 &    &     &   1  &   1   &   1  &  1  &  1  \\ \hline
 \end{tabular}
 \end{table}
     \end{answer}
     \item Using the vector space model and cosine similarity, find the closest document to the user query ``I LIKE EGGS" and their cosine similarity. \textbf{(4pts)}
     %%%%%ANSWER FOR 4.1 b%%%%%%
         \begin{answer}
-
+        cosine similarity : 0.7071, 'I LIKE GREEN EGGS AND HAM'
     \end{answer}
     
     \item What are some issues you see of using counts to create the document vector? (one or two are enough.) \textbf{(4pts)}
     %%%%%ANSWER FOR 4.1 c%%%%%%
 
         \begin{answer}
-
+    1) 겹치는 단어수로 하기 때문에 의미 있는 단어를 선정했다고 보기 어려움. 2) Document에 나오지 않은 단어가 Query에 나올때 처리가 어려움.
     \end{answer}
 \end{enumerate}
 \subsection{TF-IDF}
@@ -373,28 +457,29 @@ One solution to this problem is to use the TF-IDF representation.
              %%%%%ANSWER FOR 4.2 a%%%%%%
 
 \begin{answer}
+score : 0.2983, \text{'I LIKE GREEN EGGS AND HAM'}
 \begin{table}[H]
 \centering
 \label{tab:my-table}
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|}
 \hline
-     & I & AM & SAM & LIKE & GREEN & EGGS & AND & HAM \\ \hline
-doc1 &   &    &     &      &       &      &     &     \\ \hline
-doc2 &   &    &     &      &       &      &     &     \\ \hline
-doc3 &   &    &     &      &       &      &     &     \\ \hline
-query &   &    &     &      &       &      &     &     \\ \hline
+      & I & AM & SAM & LIKE     & GREEN & EGGS & AND & HAM \\ \hline
+doc1  & 0 & 1  &  1  &  0       &   0   &  0   &  0  &  0  \\ \hline
+doc2  & 0 & 1  &  1  &  0.4150  &   0   &  0   &  0  &  0  \\ \hline
+doc3  & 0 & 0  &  0  &  0.4150  &   2   &  1   &  2  &  2  \\ \hline
+query & 0 & 0  &  0  &  0.4150  &   0   &  1   &  0  &  0  \\ \hline
 \end{tabular}
 \end{table}
     \end{answer}
 	\item How does TF-IDF solve the issue quoted in 4.1? \textbf{(4pts)}
             %%%%%ANSWER FOR 4.2 b%%%%%%
     \begin{answer}
-
+    모든 문서에서 동일하게 발생하는 단어들은 중요하지 않은것으로 처리함으로서 좀더 의미 있는 단어를 기반으로 유사도를 측정함
     \end{answer}
     \item \textbf{(Bonus)} Instead of using cosine similarity we could also use the L2 distance. Implement the code using L2 distance. Based on the result, state which similarity function (L2 or cosine) would work better here.   \textbf{(4pts)}
         %%%%%ANSWER FOR 4.2 c%%%%%%
             \begin{answer}
-
+    여기에선 cosine similarity를 사용하는게 좋을 것으로 예상함. 왜냐하면 L2의 경우 의미가 비슷한 문장이 더 큰 distance로 표현됨
     \end{answer}
 
 \end{enumerate}
